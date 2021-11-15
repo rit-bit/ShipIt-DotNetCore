@@ -28,7 +28,6 @@ namespace ShipIt.Repositories
 
         public ProductDataModel GetProductByGtin(string gtin)
         {
-
             string sql = "SELECT p_id, gtin_cd, gcp_cd, gtin_nm, m_g, l_th, ds, min_qt FROM gtin WHERE gtin_cd = @gtin_cd";
             var parameter = new NpgsqlParameter("@gtin_cd", gtin);
             return base.RunSingleGetQuery(sql, reader => new ProductDataModel(reader),
@@ -37,7 +36,6 @@ namespace ShipIt.Repositories
 
         public IEnumerable<ProductDataModel> GetProductsByGtin(List<string> gtins)
         {
-
             string sql = String.Format("SELECT p_id, gtin_cd, gcp_cd, gtin_nm, m_g, l_th, ds, min_qt FROM gtin WHERE gtin_cd IN ('{0}')", 
                 String.Join("','", gtins));
             return base.RunGetQuery(sql, reader => new ProductDataModel(reader), "No products found with given gtin ids", null);
@@ -45,7 +43,6 @@ namespace ShipIt.Repositories
 
         public ProductDataModel GetProductById(int id)
         {
-
             string sql = "SELECT p_id, gtin_cd, gcp_cd, gtin_nm, m_g, l_th, ds, min_qt FROM gtin WHERE p_id = @p_id";
             var parameter = new NpgsqlParameter("@p_id", id);
             string noProductWithIdErrorMessage = string.Format("No products found with id of value {0}", id.ToString());

@@ -30,11 +30,11 @@ namespace ShipIt.Controllers
         [HttpGet("{warehouseId}")]
         public InboundOrderResponse Get([FromRoute] int warehouseId)
         {
-            Log.Info("orderIn for warehouseId: " + warehouseId);
+            Log.Info($"orderIn for warehouseId: {warehouseId}");
 
             var operationsManager = new Employee(_employeeRepository.GetOperationsManager(warehouseId));
 
-            Log.Debug(String.Format("Found operations manager: {0}", operationsManager));
+            Log.Debug($"Found operations manager: {operationsManager}");
 
             var allStock = _stockRepository.GetStockByWarehouseId(warehouseId);
 
@@ -59,11 +59,12 @@ namespace ShipIt.Controllers
                             gtin = product.Gtin,
                             name = product.Name,
                             quantity = orderQuantity
-                        });
+                        }
+                    );
                 }
             }
 
-            Log.Debug(String.Format("Constructed order lines: {0}", orderlinesByCompany));
+            Log.Debug($"Constructed order lines: {orderlinesByCompany}");
 
             var orderSegments = orderlinesByCompany.Select(ol => new OrderSegment()
             {
@@ -100,7 +101,7 @@ namespace ShipIt.Controllers
             IEnumerable<ProductDataModel> productDataModels = _productRepository.GetProductsByGtin(gtins);
             Dictionary<string, Product> products = productDataModels.ToDictionary(p => p.Gtin, p => new Product(p));
 
-            Log.Debug(String.Format("Retrieved products to verify manifest: {0}", products));
+            Log.Debug($"Retrieved products to verify manifest: {products}");
 
             var lineItems = new List<StockAlteration>();
             var errors = new List<string>();
@@ -109,15 +110,14 @@ namespace ShipIt.Controllers
             {
                 if (!products.ContainsKey(orderLine.gtin))
                 {
-                    errors.Add(String.Format("Unknown product gtin: {0}", orderLine.gtin));
+                    errors.Add($"Unknown product gtin: {orderLine.gtin}");
                     continue;
                 }
 
                 Product product = products[orderLine.gtin];
                 if (!product.Gcp.Equals(requestModel.Gcp))
                 {
-                    errors.Add(String.Format("Manifest GCP ({0}) doesn't match Product GCP ({1})",
-                        requestModel.Gcp, product.Gcp));
+                    errors.Add($"Manifest GCP ({requestModel.Gcp}) doesn't match Product GCP ({product.Gcp})");
                 }
                 else
                 {
@@ -127,11 +127,11 @@ namespace ShipIt.Controllers
 
             if (errors.Count() > 0)
             {
-                Log.Debug(String.Format("Found errors with inbound manifest: {0}", errors));
-                throw new ValidationException(String.Format("Found inconsistencies in the inbound manifest: {0}", String.Join("; ", errors)));
+                Log.Debug($"Found errors with inbound manifest: {errors}");
+                throw new ValidationException($"Found inconsistencies in the inbound manifest: {String.Join("; ", errors)}");
             }
 
-            Log.Debug(String.Format("Increasing stock levels with manifest: {0}", requestModel));
+            Log.Debug($"Increasing stock levels with manifest: {requestModel}");
             _stockRepository.AddStock(requestModel.WarehouseId, lineItems);
             Log.Info("Stock levels increased");
         }

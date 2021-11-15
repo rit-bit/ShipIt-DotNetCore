@@ -1,12 +1,23 @@
 ﻿﻿using System.Collections.Generic;
 using System.Linq;
+using ShipIt.Controllers;
 using ShipIt.Exceptions;
 using ShipIt.Models.ApiModels;
+using ShipIt.Validators;
 
 namespace ShipIt.Parsers
 {
     public static class ProductParser
     {
+        public static List<Product> ParseAll(ProductsRequestModel requestModel) {
+            var list = new List<Product>();
+            foreach (var requestProduct in requestModel.Products) {
+                var parsedProduct = requestProduct.Parse();
+                new ProductValidator().Validate(parsedProduct);
+                list.Add(parsedProduct);
+            }
+            return list;
+        }
         public static Product Parse(this ProductRequestModel requestModel)
         {
             List<string> errors = new List<string>();

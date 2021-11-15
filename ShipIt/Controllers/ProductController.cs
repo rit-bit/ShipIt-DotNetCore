@@ -42,7 +42,7 @@ namespace ShipIt.Controllers
         [HttpPost("")]
         public Response Post([FromBody] ProductsRequestModel requestModel)
         {
-            var parsedProducts = new List<Product>();
+            var parsedProducts = new List<Product>(); // TODO Replace the following foreach loop with the new ParseAll method from the ProductParser class, then check it works
 
             foreach (var requestProduct in requestModel.Products)
             {

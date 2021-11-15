@@ -1,8 +1,8 @@
 ﻿﻿using System;
 using System.Collections.Generic;
 using System.Linq;
- using Microsoft.AspNetCore.Mvc;
- using ShipIt.Exceptions;
+using Microsoft.AspNetCore.Mvc;
+using ShipIt.Exceptions;
 using ShipIt.Models.ApiModels;
 using ShipIt.Repositories;
 
@@ -23,16 +23,16 @@ namespace ShipIt.Controllers
         }
 
         [HttpPost("")]
-        public void Post([FromBody] OutboundOrderRequestModel request)
+        public string Post([FromBody] OutboundOrderRequestModel request)
         {
-            Log.Info(String.Format("Processing outbound order: {0}", request));
+            Log.Info($"Processing outbound order: {request}");
 
             var gtins = new List<String>();
             foreach (var orderLine in request.OrderLines)
             {
                 if (gtins.Contains(orderLine.gtin))
                 {
-                    throw new ValidationException(String.Format("Outbound order request contains duplicate product gtin: {0}", orderLine.gtin));
+                    throw new ValidationException($"Outbound order request contains duplicate product gtin: {orderLine.gtin}");
                 }
                 gtins.Add(orderLine.gtin);
             }
@@ -43,20 +43,28 @@ namespace ShipIt.Controllers
             var lineItems = new List<StockAlteration>();
             var productIds = new List<int>();
             var errors = new List<string>();
+            var totalWeight = 0.0;
 
             foreach (var orderLine in request.OrderLines)
             {
                 if (!products.ContainsKey(orderLine.gtin))
                 {
-                    errors.Add(string.Format("Unknown product gtin: {0}", orderLine.gtin));
+                    errors.Add($"Unknown product gtin: {orderLine.gtin}");
                 }
                 else
                 {
                     var product = products[orderLine.gtin];
-                    lineItems.Add(new StockAlteration(product.Id, orderLine.quantity));
+                    var weight = product.Weight;
+                    var quantity = orderLine.quantity;
+                    totalWeight += (weight * quantity);
+                    lineItems.Add(new StockAlteration(product.Id, quantity));
                     productIds.Add(product.Id);
                 }
             }
+            
+            var trucksNeeded = Math.Ceiling(totalWeight / 2000);
+            var trucksNeededString = $"For this outbound order weighing {totalWeight}kg, at least {trucksNeeded} truck(s) are needed."; // TODO Show this information somehow
+            Console.WriteLine(trucksNeededString);
 
             if (errors.Count > 0)
             {
@@ -75,16 +83,14 @@ namespace ShipIt.Controllers
 
                 if (!stock.ContainsKey(lineItem.ProductId))
                 {
-                    errors.Add(string.Format("Product: {0}, no stock held", orderLine.gtin));
+                    errors.Add($"Product: {orderLine.gtin}, no stock held");
                     continue;
                 }
 
                 var item = stock[lineItem.ProductId];
                 if (lineItem.Quantity > item.held)
                 {
-                    errors.Add(
-                        string.Format("Product: {0}, stock held: {1}, stock to remove: {2}", orderLine.gtin, item.held,
-                            lineItem.Quantity));
+                    errors.Add($"Product: {orderLine.gtin}, stock held: {item.held}, stock to remove: {lineItem.Quantity}");
                 }
             }
 
@@ -94,6 +100,7 @@ namespace ShipIt.Controllers
             }
 
             _stockRepository.RemoveStock(request.WarehouseId, lineItems);
+            return trucksNeededString;
         }
     }
 }

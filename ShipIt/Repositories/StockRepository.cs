@@ -38,7 +38,7 @@ namespace ShipIt.Repositories
         {
             string sql = "SELECT p_id, hld, w_id FROM stock WHERE w_id = @w_id";
             var parameter = new NpgsqlParameter("@w_id", id);
-            string noProductWithIdErrorMessage = string.Format("No stock found with w_id: {0}", id);
+            string noProductWithIdErrorMessage = $"No stock found with w_id: {id}";
             try
             {
                 return base.RunGetQuery(sql, reader => new StockDataModel(reader), noProductWithIdErrorMessage, parameter).ToList();
@@ -51,11 +51,9 @@ namespace ShipIt.Repositories
 
         public Dictionary<int, StockDataModel> GetStockByWarehouseAndProductIds(int warehouseId, List<int> productIds)
         {
-            string sql = string.Format("SELECT p_id, hld, w_id FROM stock WHERE w_id = @w_id AND p_id IN ({0})",
-                String.Join(",", productIds));
+            string sql = $"SELECT p_id, hld, w_id FROM stock WHERE w_id = @w_id AND p_id IN ({String.Join(",", productIds)})";
             var parameter = new NpgsqlParameter("@w_id", warehouseId);
-            string noProductWithIdErrorMessage = string.Format("No stock found with w_id: {0} and p_ids: {1}",
-                warehouseId, String.Join(",", productIds));
+            string noProductWithIdErrorMessage = $"No stock found with w_id: {warehouseId} and p_ids: {String.Join(",", productIds)}";
             var stock = base.RunGetQuery(sql, reader => new StockDataModel(reader), noProductWithIdErrorMessage, parameter);
             return stock.ToDictionary(s => s.ProductId, s => s);
         }
@@ -70,7 +68,8 @@ namespace ShipIt.Repositories
                         new NpgsqlParameter("@p_id", orderLine.ProductId),
                         new NpgsqlParameter("@w_id", warehouseId),
                         new NpgsqlParameter("@hld", orderLine.Quantity)
-                    });
+                    }
+                );
             }
 
             string sql = "INSERT INTO stock (p_id, w_id, hld) VALUES (@p_id, @w_id, @hld) "
@@ -90,8 +89,8 @@ namespace ShipIt.Repositories
             {
                 if (recordsAffected[i] == 0)
                 {
-                    errorMessage = String.Format("Product {0} in warehouse {1} was unexpectedly not updated (rows updated returned {2})",
-                        parametersList[i][0], warehouseId, recordsAffected[i]);
+                    errorMessage = $"Product {parametersList[i][0]} in warehouse {warehouseId} was unexpectedly not updated "
+                                + "(rows updated returned {recordsAffected[i]})";
                 }
             }
 

@@ -1,8 +1,8 @@
 ﻿﻿using System;
 using System.Collections.Generic;
 using System.Linq;
- using NUnit.Framework;
- using ShipIt.Controllers;
+using NUnit.Framework;
+using ShipIt.Controllers;
 using ShipIt.Exceptions;
 using ShipIt.Models.ApiModels;
 using ShipIt.Repositories;
@@ -66,7 +66,7 @@ namespace ShipItTest
             onSetUp();
             try
             {
-                employeeController.Get(NAME);
+                var result = employeeController.Get(NAME).Employees.ToList();
                 Assert.Fail("Expected exception to be thrown.");
             }
             catch (NoSuchEntityException e)
@@ -117,7 +117,7 @@ namespace ShipItTest
 
             try
             {
-                employeeController.Get(NAME);
+                employeeController.Get(NAME).Employees.ToList();
                 Assert.Fail("Expected exception to be thrown.");
             }
             catch (NoSuchEntityException e)
@@ -154,11 +154,13 @@ namespace ShipItTest
             try
             {
                 employeeController.Post(addEmployeesRequest);
-                Assert.Fail("Expected exception to be thrown.");
+                var deleteRequest = new RemoveEmployeeRequest {Name = NAME};
+                employeeController.Delete(deleteRequest);
+                Assert.Fail("Expected exception to be thrown because there are two employees with that name.");
             }
-            catch (Exception)
+            catch (ArgumentException e)
             {
-                Assert.IsTrue(true);
+                Assert.IsTrue(e.Message.Contains(NAME));
             }
         }
 

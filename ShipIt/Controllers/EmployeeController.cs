@@ -26,11 +26,10 @@ namespace ShipIt.Controllers
         {
             Log.Info($"Looking up employee by name: {name}");
 
-            //var employees = new Employee(_employeeRepository.GetEmployeeByName(name));
             var employees = _employeeRepository
                 .GetEmployeesByName(name)
                 .Select(e => new Employee(e));
-
+            // TODO Should this throw an exception if no employees are found with this name?
             Log.Info("Found employees: " + employees);
             return new EmployeeResponse(employees);
         }
@@ -77,8 +76,8 @@ namespace ShipIt.Controllers
                 throw new MalformedRequestException("Unable to parse name from request parameters");
             }
             var numberOfEmployeesWithName = _employeeRepository.CountEmployees(name).Count;
-            if (numberOfEmployeesWithName > 1) { // TODO Is this the right thing to do? Should this exception be caught?
-                throw new ArgumentException($"There are {numberOfEmployeesWithName} employees with that name. " 
+            if (numberOfEmployeesWithName > 1) {
+                throw new ArgumentException($"There are {numberOfEmployeesWithName} employees with the name {name}. " 
                     + "Please find the one you wish to delete and use the \"Delete by ID\" feature instead.");
             }
 
@@ -88,7 +87,7 @@ namespace ShipIt.Controllers
             }
             catch (NoSuchEntityException)
             {
-                throw new NoSuchEntityException($"No employee exists with name: {name}"); // TODO Should this exception be re-thrown?
+                throw new NoSuchEntityException($"No employee exists with name: {name}");
             }
         }
 
@@ -106,7 +105,7 @@ namespace ShipIt.Controllers
             }
             catch (NoSuchEntityException)
             {
-                throw new NoSuchEntityException($"No employee exists with id: {id}"); // TODO Should this exception be re-thrown?
+                throw new NoSuchEntityException($"No employee exists with id: {id}");
             }
         }
     }

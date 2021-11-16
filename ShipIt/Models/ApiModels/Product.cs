@@ -21,7 +21,7 @@ namespace ShipIt.Models.ApiModels
             Gtin = dataModel.Gtin;
             Gcp = dataModel.Gcp;
             Name = dataModel.Name;
-            Weight = (float)dataModel.Weight;
+            Weight = (float)dataModel.WeightInGrams;
             LowerThreshold = dataModel.LowerThreshold;
             Discontinued = dataModel.Discontinued == 1;
             MinimumOrderQuantity = dataModel.MinimumOrderQuantity;

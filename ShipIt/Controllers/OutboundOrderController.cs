@@ -38,12 +38,12 @@ namespace ShipIt.Controllers
             }
 
             var productDataModels = _productRepository.GetProductsByGtin(gtins);
-            var products = productDataModels.ToDictionary(p => p.Gtin, p => new Product(p));
+            var products = productDataModels.ToDictionary(p => p.Gtin);
 
             var lineItems = new List<StockAlteration>();
             var productIds = new List<int>();
             var errors = new List<string>();
-            var totalWeight = 0.0;
+            var totalWeightInKgs = 0.0;
 
             foreach (var orderLine in request.OrderLines)
             {
@@ -54,16 +54,16 @@ namespace ShipIt.Controllers
                 else
                 {
                     var product = products[orderLine.gtin];
-                    var weight = product.Weight;
+                    var weightInKgs = product.WeightInGrams / 1000;
                     var quantity = orderLine.quantity;
-                    totalWeight += (weight * quantity);
+                    totalWeightInKgs += (weightInKgs * quantity);
                     lineItems.Add(new StockAlteration(product.Id, quantity));
                     productIds.Add(product.Id);
                 }
             }
             
-            var trucksNeeded = Math.Ceiling(totalWeight / 2000);
-            var trucksNeededString = $"For this outbound order weighing {totalWeight}kg, at least {trucksNeeded} truck(s) are needed."; // TODO Show this information somehow
+            var trucksNeeded = Math.Ceiling(totalWeightInKgs / 2000);
+            var trucksNeededString = $"For this outbound order weighing {totalWeightInKgs}kg, at least {trucksNeeded} truck(s) are needed.";
             Console.WriteLine(trucksNeededString);
 
             if (errors.Count > 0)

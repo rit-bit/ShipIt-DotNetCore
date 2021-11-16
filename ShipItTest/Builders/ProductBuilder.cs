@@ -77,7 +77,7 @@ namespace ShipItTest.Builders
                 LowerThreshold = this.LowerThreshold,
                 MinimumOrderQuantity = this.MinimumOrderQuantity,
                 Name = this.Name,
-                Weight = this.Weight
+                WeightInGrams = this.Weight
             };
         }
 

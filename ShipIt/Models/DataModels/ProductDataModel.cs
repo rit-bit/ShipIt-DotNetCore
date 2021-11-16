@@ -67,7 +67,7 @@ namespace ShipIt.Models.DataModels
         public string Name { get; set; }
 
         [DatabaseColumnName("m_g")]
-        public double Weight { get; set; }
+        public double WeightInGrams { get; set; }
 
         [DatabaseColumnName("l_th")]
         public int LowerThreshold { get; set; }
@@ -90,7 +90,7 @@ namespace ShipIt.Models.DataModels
             Gtin = apiModel.Gtin;
             Gcp = apiModel.Gcp;
             Name = apiModel.Name;
-            Weight = apiModel.Weight;
+            WeightInGrams = apiModel.Weight;
             LowerThreshold = apiModel.LowerThreshold;
             Discontinued = apiModel.Discontinued ? 1 : 0;
             MinimumOrderQuantity = apiModel.MinimumOrderQuantity;

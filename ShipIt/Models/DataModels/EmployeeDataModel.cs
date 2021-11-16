@@ -31,11 +31,23 @@ namespace ShipIt.Models.DataModels
 
         private string MapApiRoleToDatabaseRole(EmployeeRole employeeRole)
         {
-            if (employeeRole == EmployeeRole.CLEANER) return DataBaseRoles.Cleaner;
-            if (employeeRole == EmployeeRole.MANAGER) return DataBaseRoles.Manager;
-            if (employeeRole == EmployeeRole.OPERATIONS_MANAGER) return DataBaseRoles.OperationsManager;
-            if (employeeRole == EmployeeRole.PICKER) return DataBaseRoles.Picker;
-            throw new ArgumentOutOfRangeException("EmployeeRole");
+            switch (employeeRole) {
+                
+                case EmployeeRole.CLEANER:
+                    return DataBaseRoles.Cleaner;
+
+                case EmployeeRole.MANAGER:
+                    return DataBaseRoles.Manager;
+
+                case EmployeeRole.OPERATIONS_MANAGER:
+                    return DataBaseRoles.OperationsManager;
+
+                case EmployeeRole.PICKER:
+                    return DataBaseRoles.Picker;
+
+                default:
+                    throw new ArgumentOutOfRangeException("EmployeeRole");
+            }
         }
     }
 }

@@ -64,7 +64,6 @@ namespace ShipIt.Controllers
             
             var trucksNeeded = Math.Ceiling(totalWeightInKgs / 2000);
             var trucksNeededString = $"For this outbound order weighing {totalWeightInKgs}kg, at least {trucksNeeded} truck(s) are needed.";
-            Console.WriteLine(trucksNeededString);
 
             if (errors.Count > 0)
             {

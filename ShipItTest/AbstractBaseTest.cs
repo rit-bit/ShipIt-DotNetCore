@@ -24,10 +24,10 @@ namespace ShipItTest
             DotNetEnv.Env.Load();
             // Start from a clean slate
             string sql =
-                "TRUNCATE TABLE em;"
-                + "TRUNCATE TABLE stock;"
-                + "TRUNCATE TABLE gcp;"
-                + "TRUNCATE TABLE gtin CASCADE;";
+                "TRUNCATE TABLE em RESTART IDENTITY;"
+                + "TRUNCATE TABLE stock RESTART IDENTITY;"
+                + "TRUNCATE TABLE gcp RESTART IDENTITY;"
+                + "TRUNCATE TABLE gtin RESTART IDENTITY CASCADE;";
 
             using (IDbConnection connection = CreateSqlConnection())
             {

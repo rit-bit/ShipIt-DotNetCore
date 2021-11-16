@@ -69,12 +69,17 @@ namespace ShipIt.Controllers
         }
 
         [HttpDelete("")]
-        public void Delete([FromBody] RemoveEmployeeRequest requestModel) // TODO What to do if trying to delete an employee where there are two employees with that name?
+        public void Delete([FromBody] RemoveEmployeeRequest requestModel)
         {
             string name = requestModel.Name;
             if (name == null)
             {
                 throw new MalformedRequestException("Unable to parse name from request parameters");
+            }
+            var numberOfEmployeesWithName = _employeeRepository.CountEmployees(name).Count;
+            if (numberOfEmployeesWithName > 1) { // TODO Is this the right thing to do? Should this exception be caught?
+                throw new ArgumentException($"There are {numberOfEmployeesWithName} employees with that name. " 
+                    + "Please find the one you wish to delete and use the \"Delete by ID\" feature instead.");
             }
 
             try
@@ -83,7 +88,25 @@ namespace ShipIt.Controllers
             }
             catch (NoSuchEntityException)
             {
-                throw new NoSuchEntityException($"No employee exists with name: {name}");
+                throw new NoSuchEntityException($"No employee exists with name: {name}"); // TODO Should this exception be re-thrown?
+            }
+        }
+
+        [HttpDelete("id")]
+        public void DeleteById([FromBody] RemoveEmployeeByIdRequest requestModel)
+        {
+            int id = requestModel.Id;
+            if (id == 0) {
+                throw new MalformedRequestException("Unable to parse id from request parameters");
+            }
+
+            try
+            {
+                _employeeRepository.RemoveEmployeeById(id);
+            }
+            catch (NoSuchEntityException)
+            {
+                throw new NoSuchEntityException($"No employee exists with id: {id}"); // TODO Should this exception be re-thrown?
             }
         }
     }

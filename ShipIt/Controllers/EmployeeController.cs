@@ -26,22 +26,25 @@ namespace ShipIt.Controllers
         {
             Log.Info($"Looking up employee by name: {name}");
 
-            var employee = new Employee(_employeeRepository.GetEmployeeByName(name));
+            //var employees = new Employee(_employeeRepository.GetEmployeeByName(name));
+            var employees = _employeeRepository
+                .GetEmployeesByName(name)
+                .Select(e => new Employee(e));
 
-            Log.Info("Found employee: " + employee);
-            return new EmployeeResponse(employee);
+            Log.Info("Found employees: " + employees);
+            return new EmployeeResponse(employees);
         }
 
         [HttpGet("{warehouseId}")]
         public EmployeeResponse Get([FromRoute] int warehouseId)
         {
-            Log.Info(String.Format("Looking up employee by id: {0}", warehouseId));
+            Log.Info($"Looking up employee by id: {warehouseId}");
 
             var employees = _employeeRepository
                 .GetEmployeesByWarehouseId(warehouseId)
                 .Select(e => new Employee(e));
 
-            Log.Info(String.Format("Found employees: {0}", employees));
+            Log.Info($"Found employees: {employees}");
             
             return new EmployeeResponse(employees);
         }
@@ -56,7 +59,7 @@ namespace ShipIt.Controllers
                 throw new MalformedRequestException("Expected at least one <employee> tag");
             }
 
-            Log.Info("Adding employees: " + employeesToAdd);
+            Log.Info($"Adding employees: {employeesToAdd}");
 
             _employeeRepository.AddEmployees(employeesToAdd);
 
@@ -66,7 +69,7 @@ namespace ShipIt.Controllers
         }
 
         [HttpDelete("")]
-        public void Delete([FromBody] RemoveEmployeeRequest requestModel)
+        public void Delete([FromBody] RemoveEmployeeRequest requestModel) // TODO What to do if trying to delete an employee where there are two employees with that name?
         {
             string name = requestModel.Name;
             if (name == null)
@@ -80,7 +83,7 @@ namespace ShipIt.Controllers
             }
             catch (NoSuchEntityException)
             {
-                throw new NoSuchEntityException("No employee exists with name: " + name);
+                throw new NoSuchEntityException($"No employee exists with name: {name}");
             }
         }
     }

@@ -1,7 +1,4 @@
 ﻿﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using ShipIt.Models.DataModels;
 
@@ -24,11 +21,23 @@ namespace ShipIt.Models.ApiModels
 
         private EmployeeRole MapDatabaseRoleToApiRole(string databaseRole)
         {
-            if (databaseRole == DataBaseRoles.Cleaner) return EmployeeRole.CLEANER;
-            if (databaseRole == DataBaseRoles.Manager) return EmployeeRole.MANAGER;
-            if (databaseRole == DataBaseRoles.OperationsManager) return EmployeeRole.OPERATIONS_MANAGER;
-            if (databaseRole == DataBaseRoles.Picker) return EmployeeRole.PICKER;
-            throw new ArgumentOutOfRangeException("DatabaseRole");
+            switch (databaseRole) {
+                
+                case DataBaseRoles.Cleaner:
+                    return EmployeeRole.CLEANER;
+
+                case DataBaseRoles.Manager:
+                    return EmployeeRole.MANAGER;
+
+                case DataBaseRoles.OperationsManager:
+                    return EmployeeRole.OPERATIONS_MANAGER;
+
+                case DataBaseRoles.Picker:
+                    return EmployeeRole.PICKER;
+
+                default:
+                    throw new ArgumentOutOfRangeException("DatabaseRole");
+            }
         }
 
         //Empty constructor needed for Xml serialization

@@ -163,7 +163,7 @@ namespace ShipItTest
                    && A.LowerThreshold == B.LowerThreshold
                    && A.MinimumOrderQuantity == B.MinimumOrderQuantity
                    && A.Name == B.Name
-                   && Math.Abs(A.Weight - B.Weight) < floatingPointTolerance;
+                   && Math.Abs(A.WeightInKgs - B.WeightInKgs) < floatingPointTolerance;
         }
     }
 }

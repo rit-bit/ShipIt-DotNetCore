@@ -10,7 +10,7 @@ namespace ShipIt.Models.ApiModels
         public string Gtin { get; set; }
         public string Gcp { get; set; }
         public string Name { get; set; }
-        public float Weight { get; set; }
+        public float WeightInKgs { get; set; }
         public int LowerThreshold { get; set; }
         public bool Discontinued { get; set; }
         public int MinimumOrderQuantity { get; set; }
@@ -21,7 +21,7 @@ namespace ShipIt.Models.ApiModels
             Gtin = dataModel.Gtin;
             Gcp = dataModel.Gcp;
             Name = dataModel.Name;
-            Weight = (float)dataModel.WeightInGrams;
+            WeightInKgs = (float) dataModel.WeightInGrams / 1000;
             LowerThreshold = dataModel.LowerThreshold;
             Discontinued = dataModel.Discontinued == 1;
             MinimumOrderQuantity = dataModel.MinimumOrderQuantity;
@@ -39,7 +39,7 @@ namespace ShipIt.Models.ApiModels
                     .AppendFormat("gtin: {0}, ", Gtin)
                     .AppendFormat("gcp: {0}, ", Gcp)
                     .AppendFormat("name: {0}, ", Name)
-                    .AppendFormat("weight: {0}, ", Weight)
+                    .AppendFormat("weight: {0}, ", WeightInKgs)
                     .AppendFormat("lowerThreshold: {0}, ", LowerThreshold)
                     .AppendFormat("discontinued: {0}, ", Discontinued)
                     .AppendFormat("minimumOrderQuantity: {0}, ", MinimumOrderQuantity)

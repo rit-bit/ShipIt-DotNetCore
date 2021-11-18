@@ -12,7 +12,7 @@ namespace ShipIt.Repositories
     {
         int GetCount();
         ProductDataModel GetProductByGtin(string gtin);
-        IEnumerable<ProductDataModel> GetProductsByGtin(List<string> gtins);
+        IEnumerable<ProductDataModel> GetProductsByGtin(IEnumerable<string> gtins);
         ProductDataModel GetProductById(int id);
         void AddProducts(IEnumerable<ProductDataModel> products);
         void DiscontinueProductByGtin(string gtin);
@@ -34,7 +34,7 @@ namespace ShipIt.Repositories
                 string.Format("No products found with gtin of value {0}", gtin), parameter);
         }
 
-        public IEnumerable<ProductDataModel> GetProductsByGtin(List<string> gtins)
+        public IEnumerable<ProductDataModel> GetProductsByGtin(IEnumerable<string> gtins)
         {
             string sql = String.Format("SELECT p_id, gtin_cd, gcp_cd, gtin_nm, m_g, l_th, ds, min_qt FROM gtin WHERE gtin_cd IN ('{0}')", 
                 String.Join("','", gtins));

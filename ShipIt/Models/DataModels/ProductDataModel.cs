@@ -90,7 +90,7 @@ namespace ShipIt.Models.DataModels
             Gtin = apiModel.Gtin;
             Gcp = apiModel.Gcp;
             Name = apiModel.Name;
-            WeightInGrams = apiModel.Weight;
+            WeightInGrams = apiModel.WeightInKgs;
             LowerThreshold = apiModel.LowerThreshold;
             Discontinued = apiModel.Discontinued ? 1 : 0;
             MinimumOrderQuantity = apiModel.MinimumOrderQuantity;

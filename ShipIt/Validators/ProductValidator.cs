@@ -13,7 +13,7 @@ namespace ShipIt.Validators
 
         ValidateGcp(target.Gcp);
 
-        AssertNonNegative("m_g", target.Weight);
+        AssertNonNegative("m_g", target.WeightInKgs);
 
         AssertNonNegative("lowerThreshold", target.LowerThreshold);
 

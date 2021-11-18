@@ -79,7 +79,7 @@ namespace ShipIt.Parsers
                 LowerThreshold = lowerThreshold,
                 MinimumOrderQuantity = minimumOrderQuantity,
                 Name = requestModel.Name,
-                Weight = weight
+                WeightInKgs = weight
             };
         }
     }

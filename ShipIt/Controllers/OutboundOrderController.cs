@@ -1,18 +1,18 @@
-﻿﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using ShipIt.Exceptions;
 using ShipIt.Models.ApiModels;
 using ShipIt.Repositories;
- using ShipIt.TruckLoadingLogic;
+using ShipIt.TruckLoadingLogic;
 
- namespace ShipIt.Controllers
+namespace ShipIt.Controllers
 {
     [Route("orders/outbound")]
     public class OutboundOrderController : ControllerBase
     {
-        private static readonly log4net.ILog Log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod()?.DeclaringType);
+        private static readonly log4net.ILog Log =
+            log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod()?.DeclaringType);
 
         private readonly IStockRepository _stockRepository;
         private readonly IProductRepository _productRepository;
@@ -23,70 +23,67 @@ using ShipIt.Repositories;
             _productRepository = productRepository;
         }
 
-        [HttpPost("")]
-        public string
-            Post([FromBody] OutboundOrderRequestModel request) // Start with a w_id and a list of orderLines (gtin + quantity)
+        [HttpGet("")]
+        public string Get([FromQuery] int numberOfItems, [FromQuery] int warehouseId)
         {
+            var requestGenerator = new InsomniaRequestGenerator(_stockRepository);
+            return requestGenerator.GenerateRandomRequest(numberOfItems, warehouseId);
+        }
+
+        [HttpPost("")]
+        public string Post([FromBody] OutboundOrderRequestModel request)
+        {
+            // Start with a w_id and a list of orderLines (gtin + quantity)
             Log.Info($"Processing outbound order: {request}");
 
-            var gtins = new List<string>();
-            foreach (var orderLine in request.OrderLines) // Create list of gtin strings
-            {
-                if (gtins.Contains(orderLine.gtin)) // Avoiding any duplicate gtins
-                {
-                    throw new ValidationException(
-                        $"Outbound order request contains duplicate product gtin: {orderLine.gtin}");
-                }
+            var gtins = GetValidatedGtins(request);
 
-                gtins.Add(orderLine.gtin);
-            }
-
-            var productDataModels = _productRepository.GetProductsByGtin(gtins); // Get all the products for the gtins
-            var products = productDataModels.ToDictionary(p => p.Gtin); // Make it a dictionary of gtin => product info
+            // Get all the products for the gtins
+            var productDataModels = _productRepository.GetProductsByGtin(gtins);
+            // Make it a dictionary of gtin => product info
+            var productDataModelsDict = productDataModels.ToDictionary(p => p.Gtin);
 
             var lineItems = new List<StockAlteration>();
             var productIds = new List<int>();
             var trucksPayload = new List<ProductOrder>();
             var errors = new List<string>();
-            var totalOrderWeightInKgs = 0.0;
 
-            foreach (var orderLine in request.OrderLines) // For every orderLine (gtin + quantity)
+            // For every orderLine (gtin + quantity)
+            foreach (var orderLine in request.OrderLines)
             {
-                if (!products.ContainsKey(orderLine.gtin))
+                if (!productDataModelsDict.ContainsKey(orderLine.gtin))
                 {
                     errors.Add($"Unknown product gtin: {orderLine.gtin}");
                 }
                 else
                 {
-                    var product = products[orderLine.gtin];
-                    var weightInKgs = product.WeightInGrams / 1000;
+                    var product = productDataModelsDict[orderLine.gtin];
                     var quantity = orderLine.quantity;
-                    totalOrderWeightInKgs += weightInKgs * quantity; // Increase totalOrderWeight
-                    lineItems.Add(new StockAlteration(product.Id, quantity)); // Take note of how much to decrease stock by
-                    productIds.Add(product.Id); // Record product id
+                    // Take note of how much to decrease stock by
+                    lineItems.Add(new StockAlteration(product.Id, quantity));
+                    // Record product id
+                    productIds.Add(product.Id);
                     trucksPayload.Add(new ProductOrder(new Product(product), quantity));
                 }
             }
-
-            var trucksNeeded = Math.Ceiling(totalOrderWeightInKgs / Truck.MaxWeightInKgs);
-            var trucksNeededString =
-                $"For this outbound order weighing {totalOrderWeightInKgs}kg, at least {trucksNeeded} truck(s) are needed.";
 
             if (errors.Count > 0)
             {
                 throw new NoSuchEntityException(string.Join("; ", errors));
             }
 
-            var stock = _stockRepository.GetStockByWarehouseAndProductIds(request.WarehouseId,
-                productIds); // Get stock levels for relevant productIDs
+            // Get stock levels for relevant productIDs
+            var stock = _stockRepository.GetStockByWarehouseAndProductIds(request.WarehouseId, productIds);
 
             var orderLines = request.OrderLines.ToList();
             errors = new List<string>();
 
-            for (var i = 0; i < lineItems.Count; i++) // For every stock alteration we need to do
+            // For every stock alteration we need to do
+            for (var i = 0; i < lineItems.Count; i++)
             {
                 var lineItem = lineItems[i];
-                var orderLine = orderLines[i]; // Get the corresponding orderLine (gtin + quantity)
+                // Get the corresponding orderLine (gtin + quantity)
+                var orderLine = orderLines[i];
 
                 if (!stock.ContainsKey(lineItem.ProductId))
                 {
@@ -94,7 +91,8 @@ using ShipIt.Repositories;
                     continue;
                 }
 
-                var item = stock[lineItem.ProductId]; // and check if we have enough stock
+                // and check if we have enough stock
+                var item = stock[lineItem.ProductId];
                 if (lineItem.Quantity > item.held)
                 {
                     errors.Add(
@@ -107,10 +105,29 @@ using ShipIt.Repositories;
                 throw new InsufficientStockException(string.Join("; ", errors));
             }
 
-            _stockRepository.RemoveStock(request.WarehouseId, lineItems); // If all items are sufficiently in stock, adjust stock levels accordingly
+            // If all items are sufficiently in stock, adjust stock levels accordingly
+            _stockRepository.RemoveStock(request.WarehouseId, lineItems);
 
-            var truckLoadingDetails = TruckLoader.CalculateTruckLoadingDetails(trucksPayload);
-            return trucksNeededString + Environment.NewLine + truckLoadingDetails;
+            return TruckLoader.CalculateTruckLoadingDetails(trucksPayload);
+        }
+
+        private static IEnumerable<string> GetValidatedGtins(OutboundOrderRequestModel request)
+        {
+            var gtins = new List<string>();
+            // Create list of gtin strings
+            foreach (var orderLine in request.OrderLines)
+            {
+                // Avoiding any duplicate gtins
+                if (gtins.Contains(orderLine.gtin))
+                {
+                    throw new ValidationException(
+                        $"Outbound order request contains duplicate product gtin: {orderLine.gtin}");
+                }
+
+                gtins.Add(orderLine.gtin);
+            }
+
+            return gtins;
         }
     }
 }

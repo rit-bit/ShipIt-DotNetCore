@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
 using ShipIt.Models.ApiModels;
+using ShipIt.Models.DataModels;
 using ShipIt.Repositories;
 
 namespace ShipIt.TruckLoadingLogic
@@ -22,15 +23,36 @@ namespace ShipIt.TruckLoadingLogic
             var orderLines = new List<OrderLine>();
             var companyProductStockModels = _stockRepo
                 .GetCompanyProductStockByWarehouseId(warehouseId).ToList();
-            for (var i = 0; i < numberOfProducts; i++)
+
+            if (numberOfProducts > companyProductStockModels.Count)
             {
-                var index = rand.Next(companyProductStockModels.Count);
-                var companyProductStockModel = companyProductStockModels[index];
-                companyProductStockModels.Remove(companyProductStockModel);
+                throw new ArgumentException($"Requested {numberOfProducts} products, " +
+                                            $"but there are only {companyProductStockModels.Count} in the dataset.");
+            }
+            
+            orderLines.AddRange(GenerateRandomOrderLines(numberOfProducts, companyProductStockModels));
+
+            return JsonConvert.SerializeObject(new OutboundOrderRequestModel
+            {
+                WarehouseId = warehouseId,
+                OrderLines = orderLines
+            });
+        }
+
+        private static IEnumerable<OrderLine> GenerateRandomOrderLines(int numberOfProducts, IList<CompanyProductStockDataModel> listOfData)
+        {
+            var rand = new Random();
+            var availableIndices = Enumerable.Range(0, listOfData.Count).ToList();
+            var indicesToUse = availableIndices.OrderBy(x => rand.Next()).Take(numberOfProducts);
+
+            foreach (var index in indicesToUse)
+            {
+                var data = listOfData[index];
+                listOfData.Remove(data);
                 
-                var stockDataModel = companyProductStockModel.StockDataModel;
-                var productDataModel = companyProductStockModel.ProductDataModel;
-                var companyDataModel = companyProductStockModel.CompanyDataModel;
+                var stockDataModel = data.StockDataModel;
+                var productDataModel = data.ProductDataModel;
+                var companyDataModel = data.CompanyDataModel;
                 var gtin = productDataModel.Gtin;
                 var quantity = rand.Next(stockDataModel.held);
                 var orderLine = new OrderLine()
@@ -38,15 +60,8 @@ namespace ShipIt.TruckLoadingLogic
                     gtin = gtin,
                     quantity = quantity
                 };
-                orderLines.Add(orderLine);
+                yield return orderLine;
             }
-            
-
-            return JsonConvert.SerializeObject(new OutboundOrderRequestModel
-            {
-                WarehouseId = warehouseId,
-                OrderLines = orderLines
-            });
         }
     }
 }

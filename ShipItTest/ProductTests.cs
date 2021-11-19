@@ -34,7 +34,7 @@ namespace ShipItTest
         public void TestGetProduct()
         {
             onSetUp();
-            var productBuilder = new ProductBuilder().setGtin(GTIN);
+            var productBuilder = new ProductBuilder().SetGtin(GTIN);
             productRepository.AddProducts(new List<ProductDataModel>() {productBuilder.CreateProductDatabaseModel()});
             var result = productController.Get(GTIN);
 
@@ -61,7 +61,7 @@ namespace ShipItTest
         public void TestAddProducts()
         {
             onSetUp();
-            var productBuilder = new ProductBuilder().setGtin(GTIN);
+            var productBuilder = new ProductBuilder().SetGtin(GTIN);
             var productRequest = productBuilder.CreateProductRequest();
 
             var response = productController.Post(productRequest);
@@ -76,7 +76,7 @@ namespace ShipItTest
         public void TestAddPreexistingProduct()
         {
             onSetUp();
-            var productBuilder = new ProductBuilder().setGtin(GTIN);
+            var productBuilder = new ProductBuilder().SetGtin(GTIN);
             productRepository.AddProducts(new List<ProductDataModel>() {productBuilder.CreateProductDatabaseModel()});
             var productRequest = productBuilder.CreateProductRequest();
 
@@ -95,7 +95,7 @@ namespace ShipItTest
         public void TestAddDuplicateProduct()
         {
             onSetUp();
-            var productBuilder = new ProductBuilder().setGtin(GTIN);
+            var productBuilder = new ProductBuilder().SetGtin(GTIN);
             var productRequest = productBuilder.CreateDuplicateProductRequest();
 
             try
@@ -113,7 +113,7 @@ namespace ShipItTest
         public void TestDiscontinueProduct()
         {
             onSetUp();
-            var productBuilder = new ProductBuilder().setGtin(GTIN);
+            var productBuilder = new ProductBuilder().SetGtin(GTIN);
             productRepository.AddProducts(new List<ProductDataModel>() { productBuilder.CreateProductDatabaseModel() });
 
             productController.Discontinue(GTIN);

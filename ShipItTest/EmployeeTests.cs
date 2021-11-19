@@ -34,7 +34,7 @@ namespace ShipItTest
         public void TestGetEmployeeByName()
         {
             onSetUp();
-            var employeeBuilder = new EmployeeBuilder().setName(NAME);
+            var employeeBuilder = new EmployeeBuilder().SetName(NAME);
             employeeRepository.AddEmployees(new List<Employee>() {employeeBuilder.CreateEmployee()});
             var result = employeeController.Get(NAME);
 
@@ -47,8 +47,8 @@ namespace ShipItTest
         public void TestGetEmployeesByWarehouseId()
         {
             onSetUp();
-            var employeeBuilderA = new EmployeeBuilder().setWarehouseId(WAREHOUSE_ID).setName("A");
-            var employeeBuilderB = new EmployeeBuilder().setWarehouseId(WAREHOUSE_ID).setName("B");
+            var employeeBuilderA = new EmployeeBuilder().SetWarehouseId(WAREHOUSE_ID).SetName("A");
+            var employeeBuilderB = new EmployeeBuilder().SetWarehouseId(WAREHOUSE_ID).SetName("B");
             employeeRepository.AddEmployees(new List<Employee>() { employeeBuilderA.CreateEmployee(), employeeBuilderB.CreateEmployee() });
             var result = employeeController.Get(WAREHOUSE_ID).Employees.ToList();
 
@@ -94,7 +94,7 @@ namespace ShipItTest
         public void TestAddEmployees()
         {
             onSetUp();
-            var employeeBuilder = new EmployeeBuilder().setName(NAME);
+            var employeeBuilder = new EmployeeBuilder().SetName(NAME);
             var addEmployeesRequest = employeeBuilder.CreateAddEmployeesRequest();
 
             var response = employeeController.Post(addEmployeesRequest);
@@ -109,7 +109,7 @@ namespace ShipItTest
         public void TestDeleteEmployees()
         {
             onSetUp();
-            var employeeBuilder = new EmployeeBuilder().setName(NAME);
+            var employeeBuilder = new EmployeeBuilder().SetName(NAME);
             employeeRepository.AddEmployees(new List<Employee>() { employeeBuilder.CreateEmployee() });
 
             var removeEmployeeRequest = new RemoveEmployeeRequest() { Name = NAME };
@@ -147,7 +147,7 @@ namespace ShipItTest
         public void TestAddDuplicateEmployee()
         {
             onSetUp();
-            var employeeBuilder = new EmployeeBuilder().setName(NAME);
+            var employeeBuilder = new EmployeeBuilder().SetName(NAME);
             employeeRepository.AddEmployees(new List<Employee>() { employeeBuilder.CreateEmployee() });
             var addEmployeesRequest = employeeBuilder.CreateAddEmployeesRequest();
 

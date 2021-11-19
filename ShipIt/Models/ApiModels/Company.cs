@@ -46,7 +46,7 @@ namespace ShipIt.Models.ApiModels
                 return false;
             }
 
-            Company company = (Company)obj;
+            var company = (Company)obj;
 
             return Gcp == company.Gcp
                    && Name == company.Name
@@ -76,7 +76,7 @@ namespace ShipIt.Models.ApiModels
             }
         }
 
-        public override String ToString()
+        public override string ToString()
         {
             return new StringBuilder()
                 .AppendFormat("gcp: {0}, ", Gcp)

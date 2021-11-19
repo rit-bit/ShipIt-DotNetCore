@@ -51,7 +51,7 @@ namespace ShipIt.Controllers
         [HttpPost("")]
         public Response Post([FromBody] AddEmployeesRequest requestModel)
         {
-            List<Employee> employeesToAdd = requestModel.Employees;
+            var employeesToAdd = requestModel.Employees;
 
             if (employeesToAdd.Count == 0)
             {
@@ -70,7 +70,7 @@ namespace ShipIt.Controllers
         [HttpDelete("")]
         public void Delete([FromBody] RemoveEmployeeRequest requestModel)
         {
-            string name = requestModel.Name;
+            var name = requestModel.Name;
             if (name == null)
             {
                 throw new MalformedRequestException("Unable to parse name from request parameters");
@@ -94,7 +94,7 @@ namespace ShipIt.Controllers
         [HttpDelete("id")]
         public void DeleteById([FromBody] RemoveEmployeeByIdRequest requestModel)
         {
-            int id = requestModel.Id;
+            var id = requestModel.Id;
             if (id == 0) {
                 throw new MalformedRequestException("Unable to parse id from request parameters");
             }

@@ -1,6 +1,4 @@
-﻿﻿using System;
-using System.Collections.Generic;
-using System.Configuration;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Npgsql;
 using ShipIt.Exceptions;
@@ -25,23 +23,25 @@ namespace ShipIt.Repositories
 
         public int GetTrackedItemsCount()
         {
-            string sql = "SELECT COUNT(*) FROM stock";
+            const string sql = "SELECT COUNT(*) FROM stock";
             return (int)QueryForLong(sql);
         }
 
         public int GetStockHeldSum()
         {
-            string sql = "SELECT SUM(hld) FROM stock";
+            const string sql = "SELECT SUM(hld) FROM stock";
             return (int)QueryForLong(sql);
         }
 
         public IEnumerable<CompanyProductStockDataModel> GetCompanyProductStockByWarehouseId(int id) {
-            string sql = "SELECT * FROM stock JOIN gtin ON stock.p_id = gtin.p_id JOIN gcp ON gtin.gcp_cd = gcp.gcp_cd WHERE w_id = @w_id"; // TODO LEFT OR INNER JOIN?
+            const string sql = "SELECT * FROM stock JOIN gtin ON stock.p_id = gtin.p_id " + 
+                               "JOIN gcp ON gtin.gcp_cd = gcp.gcp_cd WHERE w_id = @w_id"; // TODO LEFT OR INNER JOIN?
             var parameter = new NpgsqlParameter("@w_id", id);
-            string noProductWithIdErrorMessage = $"No stock found with w_id: {id}";
+            var noProductWithIdErrorMessage = $"No stock found with w_id: {id}";
             try
             {
-                return base.RunGetQuery(sql, reader => new CompanyProductStockDataModel(reader), noProductWithIdErrorMessage, parameter).ToList();
+                return RunGetQuery(sql, reader => new CompanyProductStockDataModel(reader), 
+                    noProductWithIdErrorMessage, parameter).ToList();
             }
             catch (NoSuchEntityException)
             {
@@ -51,12 +51,13 @@ namespace ShipIt.Repositories
 
         public IEnumerable<StockDataModel> GetStockByWarehouseId(int id)
         {
-            string sql = "SELECT p_id, hld, w_id FROM stock WHERE w_id = @w_id";
+            const string sql = "SELECT p_id, hld, w_id FROM stock WHERE w_id = @w_id";
             var parameter = new NpgsqlParameter("@w_id", id);
-            string noProductWithIdErrorMessage = $"No stock found with w_id: {id}";
+            var noProductWithIdErrorMessage = $"No stock found with w_id: {id}";
             try
             {
-                return base.RunGetQuery(sql, reader => new StockDataModel(reader), noProductWithIdErrorMessage, parameter).ToList();
+                return RunGetQuery(sql, reader => new StockDataModel(reader), 
+                    noProductWithIdErrorMessage, parameter).ToList();
             }
             catch (NoSuchEntityException)
             {
@@ -66,10 +67,10 @@ namespace ShipIt.Repositories
 
         public Dictionary<int, StockDataModel> GetStockByWarehouseAndProductIds(int warehouseId, List<int> productIds)
         {
-            string sql = $"SELECT p_id, hld, w_id FROM stock WHERE w_id = @w_id AND p_id IN ({String.Join(",", productIds)})";
+            var sql = $"SELECT p_id, hld, w_id FROM stock WHERE w_id = @w_id AND p_id IN ({string.Join(",", productIds)})";
             var parameter = new NpgsqlParameter("@w_id", warehouseId);
-            string noProductWithIdErrorMessage = $"No stock found with w_id: {warehouseId} and p_ids: {String.Join(",", productIds)}";
-            var stock = base.RunGetQuery(sql, reader => new StockDataModel(reader), noProductWithIdErrorMessage, parameter);
+            var noProductWithIdErrorMessage = $"No stock found with w_id: {warehouseId} and p_ids: {string.Join(",", productIds)}";
+            var stock = RunGetQuery(sql, reader => new StockDataModel(reader), noProductWithIdErrorMessage, parameter);
             return stock.ToDictionary(s => s.ProductId, s => s);
         }
             
@@ -79,7 +80,7 @@ namespace ShipIt.Repositories
             foreach (var orderLine in lineItems)
             {
                 parametersList.Add(
-                    new NpgsqlParameter[] {
+                    new[] {
                         new NpgsqlParameter("@p_id", orderLine.ProductId),
                         new NpgsqlParameter("@w_id", warehouseId),
                         new NpgsqlParameter("@hld", orderLine.Quantity)
@@ -87,8 +88,8 @@ namespace ShipIt.Repositories
                 );
             }
 
-            string sql = "INSERT INTO stock (p_id, w_id, hld) VALUES (@p_id, @w_id, @hld) "
-                         + "ON CONFLICT (p_id, w_id) DO UPDATE SET hld = stock.hld + EXCLUDED.hld";
+            const string sql = "INSERT INTO stock (p_id, w_id, hld) VALUES (@p_id, @w_id, @hld) "
+                               + "ON CONFLICT (p_id, w_id) DO UPDATE SET hld = stock.hld + EXCLUDED.hld";
 
             var recordsAffected = new List<int>();
             foreach (var parameters in parametersList)
@@ -100,7 +101,7 @@ namespace ShipIt.Repositories
 
             string errorMessage = null;
 
-            for (int i = 0; i < recordsAffected.Count; i++)
+            for (var i = 0; i < recordsAffected.Count; i++)
             {
                 if (recordsAffected[i] == 0)
                 {
@@ -117,20 +118,19 @@ namespace ShipIt.Repositories
 
         public void RemoveStock(int warehouseId, List<StockAlteration> lineItems)
         {
-            string sql = string.Format("UPDATE stock SET hld = hld - @hld WHERE w_id = {0} AND p_id = @p_id",
-                warehouseId);
+            var sql = $"UPDATE stock SET hld = hld - @hld WHERE w_id = {warehouseId} AND p_id = @p_id";
 
             var parametersList = new List<NpgsqlParameter[]>();
             foreach (var lineItem in lineItems)
             {
-                parametersList.Add(new NpgsqlParameter[]
+                parametersList.Add(new[]
                 {
                     new NpgsqlParameter("@hld", lineItem.Quantity),
                     new NpgsqlParameter("@p_id", lineItem.ProductId)
                 });
             }
 
-            base.RunTransaction(sql, parametersList);
+            RunTransaction(sql, parametersList);
         }
     }
 }

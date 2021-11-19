@@ -19,7 +19,6 @@ namespace ShipIt.TruckLoadingLogic
         
         public string GenerateRandomRequest(int numberOfProducts, int warehouseId)
         {
-            var rand = new Random();
             var orderLines = new List<OrderLine>();
             var companyProductStockModels = _stockRepo
                 .GetCompanyProductStockByWarehouseId(warehouseId).ToList();
@@ -43,7 +42,7 @@ namespace ShipIt.TruckLoadingLogic
         {
             var rand = new Random();
             var availableIndices = Enumerable.Range(0, listOfData.Count).ToList();
-            var indicesToUse = availableIndices.OrderBy(x => rand.Next()).Take(numberOfProducts);
+            var indicesToUse = availableIndices.OrderBy(_ => rand.Next()).Take(numberOfProducts);
 
             foreach (var index in indicesToUse)
             {
@@ -52,7 +51,6 @@ namespace ShipIt.TruckLoadingLogic
                 
                 var stockDataModel = data.StockDataModel;
                 var productDataModel = data.ProductDataModel;
-                var companyDataModel = data.CompanyDataModel;
                 var gtin = productDataModel.Gtin;
                 var quantity = rand.Next(stockDataModel.held);
                 var orderLine = new OrderLine()

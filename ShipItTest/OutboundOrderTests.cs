@@ -33,7 +33,7 @@ namespace ShipItTest
             base.onSetUp();
             employeeRepository.AddEmployees(new List<Employee>() { EMPLOYEE });
             companyRepository.AddCompanies(new List<Company>() { COMPANY });
-            var productDataModel = new ProductBuilder().setGtin(GTIN).CreateProductDatabaseModel();
+            var productDataModel = new ProductBuilder().SetGtin(GTIN).CreateProductDatabaseModel();
             productRepository.AddProducts(new List<ProductDataModel>() { productDataModel });
             product = new Product(productRepository.GetProductByGtin(GTIN));
             productId = product.Id;
@@ -97,7 +97,7 @@ namespace ShipItTest
         {
             onSetUp();
             var noStockGtin = GTIN + "XYZ";
-            productRepository.AddProducts(new List<ProductDataModel>() { new ProductBuilder().setGtin(noStockGtin).CreateProductDatabaseModel() });
+            productRepository.AddProducts(new List<ProductDataModel>() { new ProductBuilder().SetGtin(noStockGtin).CreateProductDatabaseModel() });
             stockRepository.AddStock(WAREHOUSE_ID, new List<StockAlteration>() { new StockAlteration(productId, 10) });
 
             var outboundOrder = new OutboundOrderRequestModel()

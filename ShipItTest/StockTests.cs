@@ -19,7 +19,7 @@ namespace ShipItTest
         {
             base.onSetUp();
             companyRepository.AddCompanies(new List<Company>() { new CompanyBuilder().CreateCompany() });
-            productRepository.AddProducts(new List<ProductDataModel>() { new ProductBuilder().setGtin(GTIN).CreateProductDatabaseModel() });
+            productRepository.AddProducts(new List<ProductDataModel>() { new ProductBuilder().SetGtin(GTIN).CreateProductDatabaseModel() });
         }
 
         [Test]

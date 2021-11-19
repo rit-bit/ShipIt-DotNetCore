@@ -10,27 +10,27 @@ namespace ShipItTest
 {
     public class CompanyControllerTests : AbstractBaseTest
     {
-        CompanyController companyController = new CompanyController(new CompanyRepository());
-        CompanyRepository companyRepository = new CompanyRepository();
+        private readonly CompanyController _companyController = new CompanyController(new CompanyRepository());
+        private readonly CompanyRepository _companyRepository = new CompanyRepository();
 
-        private const string GCP = "0000346";
+        private const string Gcp = "0000346";
 
         [Test]
         public void TestRoundtripCompanyRepository()
         {
             onSetUp();
             var company = new CompanyBuilder().CreateCompany();
-            companyRepository.AddCompanies(new List<Company>() { company });
-            Assert.AreEqual(companyRepository.GetCompany(company.Gcp).Name, company.Name);
+            _companyRepository.AddCompanies(new List<Company>() { company });
+            Assert.AreEqual(_companyRepository.GetCompany(company.Gcp).Name, company.Name);
         }
 
         [Test]
         public void TestGetCompanyByGcp()
         {
             onSetUp();
-            var companyBuilder = new CompanyBuilder().setGcp(GCP);
-            companyRepository.AddCompanies(new List<Company>() { companyBuilder.CreateCompany() });
-            var result = companyController.Get(GCP);
+            var companyBuilder = new CompanyBuilder().SetGcp(Gcp);
+            _companyRepository.AddCompanies(new List<Company>() { companyBuilder.CreateCompany() });
+            var result = _companyController.Get(Gcp);
 
             var correctCompany = companyBuilder.CreateCompany();
             Assert.IsTrue(CompaniesAreEqual(correctCompany, result.Company));
@@ -43,12 +43,12 @@ namespace ShipItTest
             onSetUp();
             try
             {
-                companyController.Get(GCP);
+                _companyController.Get(Gcp);
                 Assert.Fail("Expected exception to be thrown.");
             }
             catch (NoSuchEntityException e)
             {
-                Assert.IsTrue(e.Message.Contains(GCP));
+                Assert.IsTrue(e.Message.Contains(Gcp));
             }
         }
 
@@ -56,28 +56,28 @@ namespace ShipItTest
         public void TestAddCompanies()
         {
             onSetUp();
-            var companyBuilder = new CompanyBuilder().setGcp(GCP);
+            var companyBuilder = new CompanyBuilder().SetGcp(Gcp);
             var addCompaniesRequest = companyBuilder.CreateAddCompaniesRequest();
 
-            var response = companyController.Post(addCompaniesRequest);
-            var databaseCompany = companyRepository.GetCompany(GCP);
+            var response = _companyController.Post(addCompaniesRequest);
+            var databaseCompany = _companyRepository.GetCompany(Gcp);
             var correctCompany = companyBuilder.CreateCompany();
 
             Assert.IsTrue(response.Success);
             Assert.IsTrue(CompaniesAreEqual(new Company(databaseCompany), correctCompany));
         }
 
-        private bool CompaniesAreEqual(Company A, Company B)
+        private static bool CompaniesAreEqual(Company a, Company b)
         {
-            return A.Gcp == B.Gcp
-                   && A.Name == B.Name
-                   && A.Addr2 == B.Addr2
-                   && A.Addr3 == B.Addr3
-                   && A.Addr4 == B.Addr4
-                   && A.PostalCode == B.PostalCode
-                   && A.City == B.City
-                   && A.Tel == B.Tel
-                   && A.Mail == B.Mail;
+            return a.Gcp == b.Gcp
+                   && a.Name == b.Name
+                   && a.Addr2 == b.Addr2
+                   && a.Addr3 == b.Addr3
+                   && a.Addr4 == b.Addr4
+                   && a.PostalCode == b.PostalCode
+                   && a.City == b.City
+                   && a.Tel == b.Tel
+                   && a.Mail == b.Mail;
         }
     }
 }

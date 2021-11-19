@@ -15,19 +15,17 @@ namespace ShipIt.Controllers
         private static readonly log4net.ILog Log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod()?.DeclaringType);
 
         private readonly IEmployeeRepository _employeeRepository;
-        private readonly ICompanyRepository _companyRepository;
         private readonly IProductRepository _productRepository;
         private readonly IStockRepository _stockRepository;
 
-        public InboundOrderController(IEmployeeRepository employeeRepository, ICompanyRepository companyRepository, IProductRepository productRepository, IStockRepository stockRepository)
+        public InboundOrderController(IEmployeeRepository employeeRepository, IProductRepository productRepository, IStockRepository stockRepository)
         {
             _employeeRepository = employeeRepository;
             _stockRepository = stockRepository;
-            _companyRepository = companyRepository;
             _productRepository = productRepository;
         }
 
-        [HttpGet("{warehouseId}")]
+        [HttpGet("{warehouseId:int}")]
         public InboundOrderResponse Get([FromRoute] int warehouseId)
         {
             Log.Info($"orderIn for warehouseId: {warehouseId}");
@@ -39,7 +37,7 @@ namespace ShipIt.Controllers
             // var allStock = _stockRepository.GetStockByWarehouseId(warehouseId);
             var allStockWithProductAndCompanyInfo = _stockRepository.GetCompanyProductStockByWarehouseId(warehouseId);
 
-            var orderlinesByCompany = new Dictionary<Company, List<InboundOrderLine>>();
+            var orderLinesByCompany = new Dictionary<Company, List<InboundOrderLine>>();
             foreach (var dataModel in allStockWithProductAndCompanyInfo)
             {
                 var stockDataModel = dataModel.StockDataModel;
@@ -51,12 +49,12 @@ namespace ShipIt.Controllers
 
                     var orderQuantity = Math.Max(product.LowerThreshold * 3 - stockDataModel.held, product.MinimumOrderQuantity);
 
-                    if (!orderlinesByCompany.ContainsKey(company))
+                    if (!orderLinesByCompany.ContainsKey(company))
                     {
-                        orderlinesByCompany.Add(company, new List<InboundOrderLine>());
+                        orderLinesByCompany.Add(company, new List<InboundOrderLine>());
                     }
 
-                    orderlinesByCompany[company].Add( 
+                    orderLinesByCompany[company].Add( 
                         new InboundOrderLine()
                         {
                             gtin = product.Gtin,
@@ -67,9 +65,9 @@ namespace ShipIt.Controllers
                 }
             }
 
-            Log.Debug($"Constructed order lines: {orderlinesByCompany}");
+            Log.Debug($"Constructed order lines: {orderLinesByCompany}");
 
-            var orderSegments = orderlinesByCompany.Select(ol => new OrderSegment()
+            var orderSegments = orderLinesByCompany.Select(ol => new OrderSegment()
             {
                 OrderLines = ol.Value,
                 Company = ol.Key
@@ -96,13 +94,13 @@ namespace ShipIt.Controllers
             {
                 if (gtins.Contains(orderLine.gtin))
                 {
-                    throw new ValidationException(String.Format("Manifest contains duplicate product gtin: {0}", orderLine.gtin));
+                    throw new ValidationException($"Manifest contains duplicate product gtin: {orderLine.gtin}");
                 }
                 gtins.Add(orderLine.gtin);
             }
 
-            IEnumerable<ProductDataModel> productDataModels = _productRepository.GetProductsByGtin(gtins);
-            Dictionary<string, Product> products = productDataModels.ToDictionary(p => p.Gtin, p => new Product(p));
+            var productDataModels = _productRepository.GetProductsByGtin(gtins);
+            var products = productDataModels.ToDictionary(p => p.Gtin, p => new Product(p));
 
             Log.Debug($"Retrieved products to verify manifest: {products}");
 
@@ -117,7 +115,7 @@ namespace ShipIt.Controllers
                     continue;
                 }
 
-                Product product = products[orderLine.gtin];
+                var product = products[orderLine.gtin];
                 if (!product.Gcp.Equals(requestModel.Gcp))
                 {
                     errors.Add($"Manifest GCP ({requestModel.Gcp}) doesn't match Product GCP ({product.Gcp})");
@@ -128,10 +126,10 @@ namespace ShipIt.Controllers
                 }
             }
 
-            if (errors.Count() > 0)
+            if (errors.Any())
             {
                 Log.Debug($"Found errors with inbound manifest: {errors}");
-                throw new ValidationException($"Found inconsistencies in the inbound manifest: {String.Join("; ", errors)}");
+                throw new ValidationException($"Found inconsistencies in the inbound manifest: {string.Join("; ", errors)}");
             }
 
             Log.Debug($"Increasing stock levels with manifest: {requestModel}");

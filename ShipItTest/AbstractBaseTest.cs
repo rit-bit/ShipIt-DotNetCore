@@ -23,28 +23,25 @@ namespace ShipItTest
         {
             DotNetEnv.Env.Load();
             // Start from a clean slate
-            string sql =
+            var sql =
                 "TRUNCATE TABLE em RESTART IDENTITY;"
                 + "TRUNCATE TABLE stock RESTART IDENTITY;"
                 + "TRUNCATE TABLE gcp RESTART IDENTITY;"
                 + "TRUNCATE TABLE gtin RESTART IDENTITY CASCADE;";
 
-            using (IDbConnection connection = CreateSqlConnection())
+            using var connection = CreateSqlConnection();
+            var command = connection.CreateCommand();
+            command.CommandText = sql;
+            connection.Open();
+            var reader = command.ExecuteReader();
+            try
             {
-                var command = connection.CreateCommand();
-                command.CommandText = sql;
-                connection.Open();
-                var reader = command.ExecuteReader();
-                try
-                {
-                    reader.Read();
-                }
-                finally
-                {
-                    reader.Close();
-                }
+                reader.Read();
             }
-
+            finally
+            {
+                reader.Close();
+            }
         }
     }
 }

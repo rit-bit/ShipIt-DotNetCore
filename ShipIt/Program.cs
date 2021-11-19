@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 
-namespace ShipIt_DotNetCore
+namespace ShipIt
 {
-    public class Program
+    public static class Program
     {
         public static void Main(string[] args)
         {
@@ -11,7 +11,7 @@ namespace ShipIt_DotNetCore
             CreateHostBuilder(args).Build().Run();
         }
 
-        public static IHostBuilder CreateHostBuilder(string[] args) =>
+        private static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder =>
                 {

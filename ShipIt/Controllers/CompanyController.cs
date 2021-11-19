@@ -39,7 +39,7 @@ namespace ShipIt.Controllers
         [HttpPost("")]
         public Response Post([FromBody] AddCompaniesRequest requestModel)
         {
-            List<Company> companiesToAdd = requestModel.companies;
+            var companiesToAdd = requestModel.companies;
 
             if (companiesToAdd.Count == 0)
             {

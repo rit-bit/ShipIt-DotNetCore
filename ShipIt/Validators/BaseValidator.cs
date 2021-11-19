@@ -1,15 +1,14 @@
-﻿﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
-namespace ShipIt.Validators
+ namespace ShipIt.Validators
 {
     public abstract class BaseValidator<T>
     {
-        List<string> errors;
+        private readonly List<string> _errors;
 
         protected BaseValidator()
         {
-            errors = new List<string>();
+            _errors = new List<string>();
         }
 
         public void Validate(T target)
@@ -19,25 +18,24 @@ namespace ShipIt.Validators
 
         protected abstract void DoValidation(T target);
 
-        void addError(String error)
+        private void AddError(string error)
         {
-            errors.Add(error);
+            _errors.Add(error);
         }
 
-        void addErrors(List<String> errors)
+        private void AddErrors(IEnumerable<string> errorsToAdd)
         {
-            this.errors.AddRange(errors);
+            _errors.AddRange(errorsToAdd);
         }
 
 /**
  * Object validators
  */
-
-        void assertNotNull(String fieldName, Object value)
+        private void AssertNotNull(string fieldName, object value)
         {
             if (value == null)
             {
-                addError(string.Format("Field {0} cannot be null", fieldName));
+                AddError($"Field {fieldName} cannot be null");
             }
         }
 
@@ -45,11 +43,11 @@ namespace ShipIt.Validators
  * String validators
  */
 
-        protected void assertNotBlank(string fieldName, string value)
+        protected void AssertNotBlank(string fieldName, string value)
         {
             if (string.IsNullOrWhiteSpace(value))
             {
-                addError(string.Format("Field {0} cannot be blank", fieldName));
+                AddError($"Field {fieldName} cannot be blank");
             }
         }
 
@@ -58,15 +56,15 @@ namespace ShipIt.Validators
             double d;
             if (!double.TryParse(value, out d))
             {
-                addError(string.Format("Field {0} must be numeric", fieldName));
+                AddError($"Field {fieldName} must be numeric");
             }
         }
 
-        protected void AssertMaxLength(String fieldName, string value, int maxLength)
+        protected void AssertMaxLength(string fieldName, string value, int maxLength)
         {
             if (value.Length > maxLength)
             {
-                addError(string.Format("Field {0} must be shorter than {1} characters", fieldName, maxLength));
+                AddError($"Field {fieldName} must be shorter than {maxLength} characters");
             }
         }
 
@@ -74,7 +72,7 @@ namespace ShipIt.Validators
         {
             if (value.Length != exactLength)
             {
-                addError(string.Format("Field {0} must be exactly {1} characters", fieldName, exactLength));
+                AddError($"Field {fieldName} must be exactly {exactLength} characters");
             }
         }
 
@@ -86,7 +84,7 @@ namespace ShipIt.Validators
         {
             if (value < 0)
             {
-                addError(string.Format("Field {0} must be non-negative", fieldName));
+                AddError($"Field {fieldName} must be non-negative");
             }
         }
 
@@ -94,7 +92,7 @@ namespace ShipIt.Validators
         {
             if (value < 0)
             {
-                addError(string.Format("Field {0} must be non-negative", fieldName));
+                AddError($"Field {fieldName} must be non-negative");
             }
         }
 
@@ -104,41 +102,21 @@ namespace ShipIt.Validators
 
         protected void ValidateGtin(string value)
         {
-            assertNotBlank("gtin", value);
+            AssertNotBlank("gtin", value);
             AssertNumeric("gtin", value);
             AssertMaxLength("gtin", value, 13);
         }
 
-        protected void ValidateGcp(String value)
+        protected void ValidateGcp(string value)
         {
-            assertNotBlank("gcp", value);
+            AssertNotBlank("gcp", value);
             AssertNumeric("gcp", value);
             AssertMaxLength("gcp", value, 13);
         }
 
-        protected void validateWarehouseId(int warehouseId)
+        protected void ValidateWarehouseId(int warehouseId)
         {
             AssertNonNegative("warehouseId", warehouseId);
         }
-        /*
-    protected void validateOrderLines(List<OrderLine> orderLines)
-    {
-        Set<String> gtins = new HashSet<String>(orderLines.size());
-        for (OrderLine orderLine : orderLines)
-        {
-            OrderLineValidator orderLineValidator = new OrderLineValidator();
-            orderLineValidator.doValidation(orderLine);
-            addErrors(orderLineValidator.errors);
-
-            if (gtins.contains(orderLine.getGtin()))
-            {
-                addError(String.format("Order contains duplicate GTINs: {0}", orderLine.getGtin()));
-            }
-            else
-            {
-                gtins.add(orderLine.getGtin());
-            }
-        }
-    }*/
     }
 }

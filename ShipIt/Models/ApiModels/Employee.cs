@@ -45,7 +45,7 @@ namespace ShipIt.Models.ApiModels
         {
         }
 
-        public override String ToString()
+        public override string ToString()
         {
             return new StringBuilder()
                     .AppendFormat("name: {0}, ", Name)
